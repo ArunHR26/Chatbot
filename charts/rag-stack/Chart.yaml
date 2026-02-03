@@ -1,0 +1,24 @@
+apiVersion: v2
+name: rag-stack
+description: A Helm chart for Cloud-Native RAG application with Next.js, FastAPI, and PostgreSQL with pgvector
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.0.0"
+
+keywords:
+  - rag
+  - ai
+  - kubernetes
+  - fastapi
+  - nextjs
+  - postgresql
+  - pgvector
+
+home: https://github.com/example/cloud-native-rag
+
+maintainers:
+  - name: Cloud-Native RAG Team
+    email: team@example.com

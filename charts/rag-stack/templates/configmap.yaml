@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "rag-stack.backend.fullname" . }}-config
+  labels:
+    {{- include "rag-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+data:
+  OPENROUTER_BASE_URL: {{ .Values.openrouter.baseUrl | quote }}
+  OPENROUTER_MODEL: {{ .Values.openrouter.model | quote }}
+  EMBEDDING_MODEL: {{ .Values.openrouter.embeddingModel | quote }}
+  EMBEDDING_DIMENSION: "1536"
+  CHUNK_SIZE: "1000"
+  CHUNK_OVERLAP: "200"

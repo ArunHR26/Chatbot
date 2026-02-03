@@ -1,0 +1,53 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+==========================================================
+                   CLOUD-NATIVE RAG STACK
+==========================================================
+
+📦 Components Deployed:
+  - Backend (FastAPI): {{ include "rag-stack.backend.fullname" . }}
+  - Frontend (Next.js): {{ include "rag-stack.frontend.fullname" . }}
+  {{- if .Values.postgresql.enabled }}
+  - PostgreSQL (pgvector): {{ include "rag-stack.postgresql.fullname" . }}
+  {{- end }}
+
+🔑 Configuration:
+  {{- if not .Values.openrouter.apiKey }}
+  ⚠️  WARNING: OpenRouter API key is not set!
+  Set it with: --set openrouter.apiKey=<your-key>
+  {{- else }}
+  ✓ OpenRouter API key is configured
+  {{- end }}
+
+🌐 Access the Application:
+{{- if .Values.ingress.enabled }}
+  {{- range .Values.ingress.hosts }}
+  - http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+  {{- end }}
+{{- else }}
+  # Get the frontend URL by running:
+  kubectl port-forward svc/{{ include "rag-stack.frontend.fullname" . }} {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }} -n {{ .Release.Namespace }}
+
+  Then open: http://localhost:{{ .Values.frontend.service.port }}
+{{- end }}
+
+📊 Useful Commands:
+
+  # Check pod status
+  kubectl get pods -l "app.kubernetes.io/instance={{ .Release.Name }}" -n {{ .Release.Namespace }}
+
+  # View backend logs
+  kubectl logs -l "app.kubernetes.io/component=backend,app.kubernetes.io/instance={{ .Release.Name }}" -n {{ .Release.Namespace }} -f
+
+  # View frontend logs
+  kubectl logs -l "app.kubernetes.io/component=frontend,app.kubernetes.io/instance={{ .Release.Name }}" -n {{ .Release.Namespace }} -f
+
+  # Connect to PostgreSQL
+  kubectl exec -it $(kubectl get pod -l "app.kubernetes.io/component=postgresql,app.kubernetes.io/instance={{ .Release.Name }}" -n {{ .Release.Namespace }} -o jsonpath='{.items[0].metadata.name}') -n {{ .Release.Namespace }} -- psql -U postgres -d {{ .Values.postgresql.auth.database }}
+
+==========================================================
+Happy RAGging! 🚀
+==========================================================

@@ -1,0 +1,15 @@
+{{- if .Values.backend.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "rag-stack.backend.fullname" . }}
+  labels:
+    {{- include "rag-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  minAvailable: {{ .Values.backend.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "rag-stack.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+{{- end }}

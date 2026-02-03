@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+htmlcov
+
+# Build outputs
+.next
+out
+build
+dist
+*.egg-info
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Kubernetes
+*.kubeconfig
+
+# Testing
+coverage

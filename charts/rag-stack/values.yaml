@@ -1,0 +1,235 @@
+# Cloud-Native RAG Helm Chart Values
+# =================================
+
+# Global settings
+global:
+  imagePullSecrets: []
+  storageClass: ""
+
+# =================================
+# OpenRouter API Configuration
+# =================================
+openrouter:
+  # REQUIRED: Your OpenRouter API key
+  apiKey: ""
+  baseUrl: "https://openrouter.ai/api/v1"
+  model: "openai/gpt-4o-mini"
+  embeddingModel: "openai/text-embedding-3-small"
+
+# =================================
+# Backend Configuration (FastAPI)
+# =================================
+backend:
+  replicaCount: 2
+  
+  image:
+    repository: cloud-native-rag/backend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 8000
+  
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  
+  # Horizontal Pod Autoscaler
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  
+  # Pod disruption budget
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  
+  # Liveness and readiness probes
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  # Extra environment variables
+  extraEnv: []
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# =================================
+# Frontend Configuration (Next.js)
+# =================================
+frontend:
+  replicaCount: 2
+  
+  image:
+    repository: cloud-native-rag/frontend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 3000
+  
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  
+  # Horizontal Pod Autoscaler
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  
+  # Liveness and readiness probes
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# =================================
+# PostgreSQL Configuration
+# =================================
+postgresql:
+  enabled: true
+  
+  image:
+    repository: pgvector/pgvector
+    tag: "pg16"
+    pullPolicy: IfNotPresent
+  
+  auth:
+    postgresPassword: "postgres"
+    database: "ragdb"
+  
+  service:
+    type: ClusterIP
+    port: 5432
+  
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# =================================
+# Ingress Configuration
+# =================================
+ingress:
+  enabled: true
+  className: "nginx"
+  
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+  
+  hosts:
+    - host: rag.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /health
+          pathType: Exact
+          service: backend
+        - path: /ready
+          pathType: Exact
+          service: backend
+  
+  tls: []
+  #  - secretName: rag-tls
+  #    hosts:
+  #      - rag.local
+
+# =================================
+# Service Account
+# =================================
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# =================================
+# Network Policies
+# =================================
+networkPolicy:
+  enabled: false
+
+# =================================
+# Prometheus Monitoring
+# =================================
+prometheus:
+  serviceMonitor:
+    enabled: false
+    interval: "30s"
+    scrapeTimeout: "10s"
+    labels: {}
+    #  release: prometheus
+
+# =================================
+# OpenTelemetry Configuration
+# =================================
+opentelemetry:
+  enabled: false
+  endpoint: ""  # e.g., "http://otel-collector.observability:4317"
+
